@@ -1,17 +1,27 @@
 import asyncio
+import os
 
 from app.client import ClusterClient
 from app.config import ClientConfig
 
 
+def get_hosts() -> list[str]:
+    hosts = os.getenv(
+        "NODE_HOSTS",
+        "http://node1.example.com,http://node2.example.com,http://node3.example.com"
+    )
+
+    return [
+        host.strip()
+        for host in hosts.split(",")
+        if host.strip()
+    ]
+
+
 async def main():
 
     config = ClientConfig(
-        hosts=[
-            "http://node1.example.com",
-            "http://node2.example.com",
-            "http://node3.example.com"
-        ]
+        hosts=get_hosts()
     )
 
     client = ClusterClient(config)

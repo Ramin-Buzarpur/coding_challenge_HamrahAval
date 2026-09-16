@@ -1,0 +1,26 @@
+apiVersion: batch/v1
+kind: Job
+
+metadata:
+  name: cluster-api-client-job
+
+spec:
+  backoffLimit: 3
+
+  template:
+    metadata:
+      name: cluster-api-client
+
+    spec:
+      restartPolicy: Never
+
+      containers:
+        - name: cluster-api-client
+
+          image: cluster-api-client:latest
+
+          imagePullPolicy: IfNotPresent
+
+          env:
+            - name: NODE_HOSTS
+              value: "http://node1.example.com,http://node2.example.com,http://node3.example.com"
