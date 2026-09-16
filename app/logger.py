@@ -1,22 +1,28 @@
 import logging
+import os
+import sys
+
+_configured = False
 
 
-def get_logger(name: str):
+def setup_logging(level: str | None = None) -> None:
+    """Configure logging once, at process start."""
+    global _configured
 
-    logger = logging.getLogger(name)
+    if _configured:
+        return
 
-    if not logger.handlers:
+    logging.basicConfig(
+        level=level or os.getenv("LOG_LEVEL", "INFO"),
+        format="%(asctime)s %(levelname)-7s %(name)s | %(message)s",
+        stream=sys.stdout,
+    )
 
-        handler = logging.StreamHandler()
+    # httpx logs every request at INFO, which drowns out our own lines.
+    logging.getLogger("httpx").setLevel(logging.WARNING)
 
-        formatter = logging.Formatter(
-            "%(asctime)s - %(levelname)s - %(message)s"
-        )
+    _configured = True
 
-        handler.setFormatter(formatter)
 
-        logger.addHandler(handler)
-
-        logger.setLevel(logging.INFO)
-
-    return logger
+def get_logger(name: str) -> logging.Logger:
+    return logging.getLogger(name)
