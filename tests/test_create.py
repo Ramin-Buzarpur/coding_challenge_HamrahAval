@@ -43,3 +43,14 @@ async def test_unexpected_status_code_fails_the_operation(make_client):
         await client.create_group("team-a")
 
     assert list(error.value.failures) == ["http://node2"]
+
+
+async def test_group_exists_uses_the_get_endpoint(make_client):
+    cluster = FakeCluster(HOSTS)
+    client = make_client(cluster)
+
+    assert await client.group_exists("http://node1", "team-a") is False
+
+    await client.create_group("team-a")
+
+    assert await client.group_exists("http://node1", "team-a") is True
