@@ -4,4 +4,10 @@ A reliable client module for managing group objects across multiple cluster node
 
 ## Overview
 
-This project provides a client that communicates with multiple API nodes and ensures consistent state during create and delete operations.
+This project implements a client that communicates with multiple REST API nodes and maintains consistency during create and delete operations.
+
+The client handles:
+- concurrent API requests
+- transient failures
+- rollback operations
+- error handling
