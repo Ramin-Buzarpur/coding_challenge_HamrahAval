@@ -1,5 +1,6 @@
 # Cluster API client
 
+[![CI](https://github.com/Ramin-Buzarpur/coding_challenge_HamrahAval/actions/workflows/ci.yml/badge.svg)](https://github.com/Ramin-Buzarpur/coding_challenge_HamrahAval/actions/workflows/ci.yml)
 A small Python client that creates and deletes groups on every node of a
 cluster, and undoes its own work when one of the nodes fails.
 
@@ -184,14 +185,32 @@ files stay out.
 
 There is a throwaway server in `dev/fake_node.py` that implements the three
 endpoints in memory and returns 500 about 30% of the time. It is not part of
-the solution, it just makes the retry and rollback behaviour visible:
+the solution, it just makes the retry and rollback behaviour visible.
+
+Three terminals for the nodes:
+
+```bash
+python dev/fake_node.py 8001
+python dev/fake_node.py 8002
+python dev/fake_node.py 8003
+```
+
+And one for the client:
+
+```bash
+export NODE_HOSTS="http://127.0.0.1:8001,http://127.0.0.1:8002,http://127.0.0.1:8003"
+python -m app create example-group
+```
+
+You should see retry warnings in the log, and either a successful create or a
+rollback, depending on how unlucky the run was. Setting `FAILURE_RATE=1.0` on
+one of the nodes forces the rollback path every time.
+
+The same thing with containers, if you have Compose v2:
 
 ```bash
 docker compose up --build
 ```
-
-You should see retry warnings in the log, and either a successful create or a
-rollback, depending on how unlucky the run was.
 
 ## Kubernetes
 
@@ -210,6 +229,12 @@ deadline, and runs as non root with a read only root filesystem.
 `backoffLimit: 3` is safe here because a failed run has already rolled itself
 back, so a retry starts from a clean state. Change `args` in the Job to run
 `delete` instead of `create`.
+
+## Repository layout
+
+`app/` is the client, `tests/` the unit tests, `manifests/` the Kubernetes
+files, `dev/` the fake node used for manual testing, and `docs/` holds the
+original task description.
 
 ## What I would do next
 
