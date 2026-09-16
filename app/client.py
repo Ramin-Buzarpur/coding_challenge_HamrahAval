@@ -3,6 +3,7 @@ import asyncio
 from app.config import ClientConfig
 from app.http_client import HttpClient
 from app.models import NodeResult, OperationStatus
+from app.logger import get_logger
 
 
 class ClusterClient:
@@ -10,12 +11,21 @@ class ClusterClient:
     def __init__(self, config: ClientConfig):
         self.config = config
         self.http = HttpClient(config)
+        self.logger = get_logger(__name__)
 
 
     async def create_group(self, group_id: str):
 
+        self.logger.info(
+            "Creating group %s",
+            group_id
+        )
+
         tasks = [
-            self._create_on_node(host, group_id)
+            self._create_on_node(
+                host,
+                group_id
+            )
             for host in self.config.hosts
         ]
 
@@ -33,6 +43,11 @@ class ClusterClient:
 
             if isinstance(result, Exception):
 
+                self.logger.error(
+                    "Create failed. Starting rollback for group %s",
+                    group_id
+                )
+
                 await self._rollback_create(
                     successful_nodes,
                     group_id
@@ -45,10 +60,19 @@ class ClusterClient:
         return results
 
 
+
     async def delete_group(self, group_id: str):
 
+        self.logger.info(
+            "Deleting group %s",
+            group_id
+        )
+
         tasks = [
-            self._delete_on_node(host, group_id)
+            self._delete_on_node(
+                host,
+                group_id
+            )
             for host in self.config.hosts
         ]
 
@@ -66,6 +90,11 @@ class ClusterClient:
 
             if isinstance(result, Exception):
 
+                self.logger.error(
+                    "Delete failed. Starting restore for group %s",
+                    group_id
+                )
+
                 await self._rollback_delete(
                     deleted_nodes,
                     group_id
@@ -76,6 +105,7 @@ class ClusterClient:
             deleted_nodes.append(host)
 
         return results
+
 
 
     async def _create_on_node(
@@ -99,6 +129,7 @@ class ClusterClient:
         )
 
 
+
     async def _delete_on_node(
         self,
         host: str,
@@ -120,11 +151,17 @@ class ClusterClient:
         )
 
 
+
     async def _rollback_create(
         self,
         successful_nodes: list[str],
         group_id: str
     ):
+
+        self.logger.warning(
+            "Rollback create started for nodes: %s",
+            successful_nodes
+        )
 
         tasks = [
             self._delete_on_node(
@@ -140,11 +177,17 @@ class ClusterClient:
         )
 
 
+
     async def _rollback_delete(
         self,
         deleted_nodes: list[str],
         group_id: str
     ):
+
+        self.logger.warning(
+            "Rollback delete started for nodes: %s",
+            deleted_nodes
+        )
 
         tasks = [
             self._create_on_node(
