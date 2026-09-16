@@ -1,5 +1,7 @@
 import pytest
 
+from httpx import Response
+
 from app.client import ClusterClient
 from app.config import ClientConfig
 from app.models import OperationStatus
@@ -19,7 +21,10 @@ async def test_create_group_success():
 
 
     async def fake_post(url, json):
-        return True
+
+        return Response(
+            status_code=201
+        )
 
 
     client.http.post = fake_post
@@ -31,3 +36,6 @@ async def test_create_group_success():
 
 
     assert len(results) == 2
+
+    assert results[0].status == OperationStatus.SUCCESS
+    assert results[1].status == OperationStatus.SUCCESS

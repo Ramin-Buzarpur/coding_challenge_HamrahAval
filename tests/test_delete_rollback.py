@@ -1,5 +1,7 @@
 import pytest
 
+from httpx import Response
+
 from app.client import ClusterClient
 from app.config import ClientConfig
 
@@ -22,14 +24,22 @@ async def test_delete_group_rollback_on_failure():
     async def fake_delete(url, json):
 
         if "node2" in url:
-            raise Exception("node2 delete failed")
+            raise Exception(
+                "node2 failed"
+            )
 
-        return True
+        return Response(
+            status_code=200
+        )
 
 
     async def fake_post(url, json):
 
         recreated_nodes.append(url)
+
+        return Response(
+            status_code=201
+        )
 
 
     client.http.delete = fake_delete

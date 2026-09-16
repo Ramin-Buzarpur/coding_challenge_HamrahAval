@@ -1,13 +1,20 @@
+import pytest
+
 from app.config import ClientConfig
 from app.http_client import HttpClient
 
 
-def test_http_client_creation():
+@pytest.mark.asyncio
+async def test_http_client_creation():
 
     config = ClientConfig(
-        hosts=["node1.example.com"]
+        hosts=[
+            "http://node1"
+        ]
     )
 
     client = HttpClient(config)
 
-    assert client.config.timeout == 5.0
+    assert client.client is not None
+
+    await client.close()

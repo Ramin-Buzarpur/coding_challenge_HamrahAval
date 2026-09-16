@@ -1,5 +1,7 @@
 import pytest
 
+from httpx import Response
+
 from app.client import ClusterClient
 from app.config import ClientConfig
 
@@ -18,7 +20,10 @@ async def test_delete_group_success():
 
 
     async def fake_delete(url, json):
-        return True
+
+        return Response(
+            status_code=200
+        )
 
 
     client.http.delete = fake_delete

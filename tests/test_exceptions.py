@@ -1,8 +1,10 @@
 from app.exceptions import APIRequestException
 
 
-def test_custom_exception():
+def test_api_request_exception():
 
-    error = APIRequestException("failed")
+    error = APIRequestException(
+        "request failed"
+    )
 
-    assert str(error) == "failed"
+    assert str(error) == "request failed"
