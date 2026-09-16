@@ -1,26 +1,51 @@
+# The client does one piece of work and exits, so a Job fits better than a
+# Deployment. Change `args` to run a different action.
 apiVersion: batch/v1
 kind: Job
-
 metadata:
-  name: cluster-api-client-job
-
+  name: cluster-api-client
+  labels:
+    app.kubernetes.io/name: cluster-api-client
 spec:
+  # The client rolls back on failure, so a retry starts from a clean state.
   backoffLimit: 3
+  activeDeadlineSeconds: 300
+
+  # Keep the finished Job around for an hour so the logs can be read.
+  ttlSecondsAfterFinished: 3600
 
   template:
     metadata:
-      name: cluster-api-client
-
+      labels:
+        app.kubernetes.io/name: cluster-api-client
     spec:
       restartPolicy: Never
 
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10001
+
       containers:
         - name: cluster-api-client
-
           image: cluster-api-client:latest
-
           imagePullPolicy: IfNotPresent
 
-          env:
-            - name: NODE_HOSTS
-              value: "http://node1.example.com,http://node2.example.com,http://node3.example.com"
+          args: ["create", "example-group"]
+
+          envFrom:
+            - configMapRef:
+                name: cluster-api-client-config
+
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: ["ALL"]
+
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              cpu: 200m
+              memory: 128Mi

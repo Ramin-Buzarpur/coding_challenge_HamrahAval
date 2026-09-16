@@ -1,0 +1,32 @@
+# Only for trying the client by hand:
+#
+#   docker compose up --build
+#
+# Three fake nodes that fail ~30% of the time, plus the client creating a
+# group on all of them.
+services:
+  node1:
+    build: .
+    entrypoint: ["python", "/app/dev/fake_node.py", "8000"]
+    volumes: ["./dev:/app/dev:ro"]
+    user: root
+
+  node2:
+    build: .
+    entrypoint: ["python", "/app/dev/fake_node.py", "8000"]
+    volumes: ["./dev:/app/dev:ro"]
+    user: root
+
+  node3:
+    build: .
+    entrypoint: ["python", "/app/dev/fake_node.py", "8000"]
+    volumes: ["./dev:/app/dev:ro"]
+    user: root
+
+  client:
+    build: .
+    command: ["create", "example-group"]
+    environment:
+      NODE_HOSTS: "http://node1:8000,http://node2:8000,http://node3:8000"
+      MAX_ATTEMPTS: "5"
+    depends_on: [node1, node2, node3]
